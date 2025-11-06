@@ -8,14 +8,15 @@ import { Smartphone } from '../../model/smartphone';
 import { Rcu } from '../../model/rcu';
 import { User } from '../../model/user';
 import { CascadeGraphComponent } from '../../components/graph/cascade-graph.component';
-
+import { DockComponent } from '../../components/dock/dock.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [
     CommonModule,
-    CascadeGraphComponent
+    CascadeGraphComponent,
+    DockComponent
   ],
   templateUrl: './home.component.html'
 })
@@ -46,6 +47,17 @@ export class HomeComponent {
   goToUser() {
     this.router.navigate(['/user']);
   }
+
+  registrierungDock = [
+    { icon: 'fas fa-user', label: 'Benutzer', route: '/user' },
+    { icon: 'fas fa-mobile-screen', label: 'Smartphones', route: '/smartphone' },
+    { icon: 'fas fa-gears', label: 'Maschinen', route: '/maschine' }
+  ];
+
+  systemDock = [
+    { icon: 'fas fa-list', label: 'Systemeinheiten', route: '/einheiten' },
+    { icon: 'fas fa-diagram-project', label: 'Zuweisungen', route: '/zuweisungen' }
+  ];
 
   // Lädt beide Tabellen gleichzeitig
   loadData(): void {
