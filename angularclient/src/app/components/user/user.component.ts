@@ -11,8 +11,12 @@ import { User } from '../../model/user';
 @Component({
   selector: 'app-user',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './user.component.html'
+  imports: [
+    CommonModule,
+    FormsModule
+  ],
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.scss']
 })
 export class UserComponent {
   // Formularfelder Registrierung
@@ -65,7 +69,7 @@ export class UserComponent {
       this.getHash = true;
 
       this.clearHashForm();
-    }
+  }
 
 
 
