@@ -21,6 +21,8 @@ export class RcuAssignComponent implements OnInit {
   selectedSmartphoneIds: number[] = [];
   message = '';
 
+  getAssigned: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -48,9 +50,48 @@ export class RcuAssignComponent implements OnInit {
 
     this.rcuService.assignSmartphones(this.rcuId, this.selectedSmartphoneIds).subscribe({
       next: _ => {
-        this.message = 'Smartphone erfolgreich zugewiesen!';
+        this.message = 'Smartphone erfolgreich zugewiesen!'; this.getAssigned = true;
       },
       error: () => this.message = 'Zuweisung fehlgeschlagen.'
     });
   }
+
+  getMachineImage(machineName: string): { src: string; height: string } {
+    if (!machineName) return { src: 'maschine.png', height: 'h-21' };
+
+    const name = machineName.toLowerCase();
+
+    if (name.includes('bagger')) {
+      return { src: 'bagger.png', height: 'h-40' };
+    } else if (name.includes('kuka')) {
+      return { src: 'kuka.png', height: 'h-30' };
+    } else if (name.includes('walze')) {
+      return { src: 'walze.png', height: 'h-40' };
+    } else {
+      return { src: 'maschine.png', height: 'h-21' };
+    }
+  }
+
+
+   toggleSelection(id: number): void {
+     const index = this.selectedSmartphoneIds.indexOf(id);
+     if (index !== -1) {
+       // bereits ausgewählt -> abwählen
+       this.selectedSmartphoneIds.splice(index, 1);
+     } else {
+       // neu auswählen
+       this.selectedSmartphoneIds.push(id);
+     }
+   }
+
+
+   trackBySmartphoneId(index: number, item: any): number {
+     return item.id;
+   }
+
+
+
+
+
+
 }

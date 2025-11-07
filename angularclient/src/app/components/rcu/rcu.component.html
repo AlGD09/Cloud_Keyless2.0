@@ -1,45 +1,70 @@
-<div class="max-w-5xl mx-auto p-6 space-y-8">
-  <h1 class="text-3xl font-semibold text-gray-800 pb-3">
-    Maschinenverwaltung
-  </h1>
+<div class="min-h-screen w-full bg-white text-gray-900 flex flex-col p-0 m-0">
+  <!-- Überschrift -->
+  <div class="px-20 pt-28 pb-6">
+    <h1 class="text-4xl font-extrabold text-[#002B49]">Maschinenregistrierung</h1>
+  </div>
 
-  <!-- Registrierung -->
-  <section class="bg-white shadow-sm rounded-2xl p-6 border border-gray-100">
-    <h2 class="text-xl font-medium text-gray-700 mb-4">Maschine registrieren</h2>
 
-    <form (ngSubmit)="register()" class="grid md:grid-cols-3 gap-4">
+  <!-- Formularbereich -->
+  <div class="flex flex-col w-full bg-white flex-1 px-20 py-10 pt-20">
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start mb-16 max-w-6xl w-full">
+      <!-- Linke Spalte (Titel + Beschreibung) -->
       <div>
-        <label class="block text-sm font-semibold text-gray-600 mb-1">Name</label>
-        <input [(ngModel)]="name" name="name"
-               class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-               required />
-      </div>
-      <div>
-        <label class="block text-sm font-semibold text-gray-600 mb-1">RCU-ID</label>
-        <input [(ngModel)]="rcuId" name="rcuId"
-               class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-               required />
-      </div>
-      <div>
-        <label class="block text-sm font-semibold text-gray-600 mb-1">Ort</label>
-        <input [(ngModel)]="location" name="location"
-               class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        <h2 class="text-2xl font-semibold text-gray-900 mb-2">Neue Maschine registrieren</h2>
+        <p class="text-gray-500 text-sm">
+          Die Eingabe des Standorts der Maschine ist optional.
+        </p>
       </div>
 
-      <div class="md:col-span-3">
-        <button type="submit"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition">
-          Maschine registrieren
-        </button>
-      </div>
-    </form>
+      <!-- Rechte Spalte (Formularfelder) -->
+      <form (ngSubmit)="register()" class="md:col-span-2 flex flex-col space-y-6">
 
-    <div *ngIf="message"
-         class="mt-4 text-sm text-blue-700 bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
-      {{ message }}
+        <!-- Name -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Name</label>
+          <input
+            [(ngModel)]="name"
+            name="name"
+            placeholder="Bagger1"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <!-- RCU-ID-->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">RCU-ID</label>
+          <input
+            [(ngModel)]="rcuId"
+            name="rcuId"
+            required
+            placeholder="7-stellige Maschinen-ID"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <!-- Ort -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Standort</label>
+          <input
+            [(ngModel)]="location"
+            name="location"
+            placeholder=""
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <!-- Submit -->
+        <div class="flex justify-end mt-4">
+          <button
+            type="submit"
+            class="bg-[#002B49] hover:bg-blue-700 text-white font-semibold w-52 h-10  rounded-lg shadow transition"
+          >
+            Maschine registrieren
+          </button>
+        </div>
+      </form>
     </div>
-  </section>
-
 </div>
 
 
