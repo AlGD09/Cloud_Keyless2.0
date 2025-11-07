@@ -20,6 +20,8 @@ export class SmartphoneAssignComponent implements OnInit {
  smartphoneName = '';
  message = '';
 
+ getAssigned: boolean = false;
+
  constructor(
      private route: ActivatedRoute,
      private router: Router,
@@ -40,18 +42,50 @@ export class SmartphoneAssignComponent implements OnInit {
   }
 
   assign(): void {
-      if (!this.selectedUserIds || this.selectedUserIds.length === 0) {
-        this.message = 'Bitte mindestens ein User auswählen.';
-        return;
-      }
-
-      this.smartphoneService.assignUsers(this.smartphoneId, this.selectedUserIds).subscribe({
-        next: _ => {
-          this.message = 'Users erfolgreich zugewiesen!';
-        },
-        error: () => this.message = 'Zuweisung fehlgeschlagen.'
-      });
+    if (!this.selectedUserIds || this.selectedUserIds.length === 0) {
+      this.message = 'Bitte mindestens ein User auswählen.';
+      return;
     }
+
+    this.smartphoneService.assignUsers(this.smartphoneId, this.selectedUserIds).subscribe({
+      next: _ => {
+        this.message = 'Users erfolgreich zugewiesen!'; this.getAssigned = true;
+      },
+      error: () => this.message = 'Zuweisung fehlgeschlagen.'
+    });
+  }
+
+  getSmartphoneImage(smartphoneName: string): { src: string; height: string } {
+    if (!smartphoneName) return { src: 'phone.png', height: 'h-21' };
+
+    const name = smartphoneName.toLowerCase();
+
+    if (name.includes('iphone')) {
+      return { src: 'apple.png', height: 'h-40' };
+    } else if (name.includes('samsung')) {
+      return { src: 'samsung.png', height: 'h-40' };
+    } else if (name.includes('xiaomi')) {
+      return { src: 'mi.png', height: 'h-40' };
+    } else {
+      return { src: 'phone.png', height: 'h-44' };
+    }
+  }
+
+  toggleSelection(id: number): void {
+     const index = this.selectedUserIds.indexOf(id);
+     if (index !== -1) {
+       // bereits ausgewählt -> abwählen
+       this.selectedUserIds.splice(index, 1);
+     } else {
+       // neu auswählen
+       this.selectedUserIds.push(id);
+     }
+  }
+
+
+  trackByUserId(index: number, item: any): number {
+     return item.id;
+  }
 
 
 
