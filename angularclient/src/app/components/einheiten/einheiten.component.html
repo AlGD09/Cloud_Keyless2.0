@@ -32,7 +32,7 @@
         >
           <td class="px-10 py-2 whitespace-nowrap hover:text-blue-900 border-r border-gray-100">{{ u.id }}</td>
           <td class="px-20 py-2 hover:text-blue-900 border-r border-gray-100">{{ u.username }}</td>
-          <td class="px-20 py-2 whitespace-nowrap hover:text-blue-900 ">{{ u.email }}</td>
+          <td class="px-20 py-2 whitespace-nowrap hover:text-blue-900 ">{{ u.email || '–' }}</td>
           <td class="px-4 py-2 text-left">
             <button
               (click)="deleteUser(u.id!)"
