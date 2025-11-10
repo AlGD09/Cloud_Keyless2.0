@@ -134,8 +134,28 @@ export class SmartphoneComponent {
     }
 
     const { deviceId } = this.selectedSmartphone;
+    const { id } = this.selectedSmartphone;
+    const { name } = this.selectedSmartphone;
     if (!this.selectedSmartphone.users || this.selectedSmartphone.users.length === 0) {
         this.empty = true;
+        Swal.fire({
+            text: `Für die Token-Generierung muss dem ausgewählten Gerät mindestens ein Benutzer zugewiesen sein.\n\nMöchten Sie jetzt einen Benutzer zuweisen?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ja',
+            cancelButtonText: 'Nein',
+            color: '#002B49',
+            buttonsStyling: false,
+            customClass: {
+              actions: 'space-x-4 justify-center',
+              confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition',
+              cancelButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+            }
+          }).then(result => {
+            if (result.isConfirmed) {
+              this.router.navigate(['/smartphone/assign'], { queryParams: { id: id, name: name } });
+            }
+          });
         return;
     }
 

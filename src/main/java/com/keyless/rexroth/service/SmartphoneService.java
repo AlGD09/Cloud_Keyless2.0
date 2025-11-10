@@ -155,6 +155,9 @@ public class SmartphoneService {
                 }
             }
 
+            // Alle Tokens entfernen, die zu diesem Gerät gehören
+            tokenStore.values().removeIf(deviceId -> deviceId.equals(smartphone.getDeviceId()));
+
             // Smartphone aus Repository löschen
             smartphoneRepository.deleteById(id);
         }
