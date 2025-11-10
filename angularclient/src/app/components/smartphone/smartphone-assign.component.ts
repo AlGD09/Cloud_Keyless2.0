@@ -43,6 +43,7 @@ export class SmartphoneAssignComponent implements OnInit {
 
   assign(): void {
     if (!this.selectedUserIds || this.selectedUserIds.length === 0) {
+      this.getAssigned = false;
       const result = Swal.fire({
         text: `Bitte wählen Sie einen Benutzer aus`,
         icon: 'warning',

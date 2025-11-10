@@ -44,6 +44,7 @@ export class RcuAssignComponent implements OnInit {
 
   assign(): void {
     if (!this.selectedSmartphoneIds || this.selectedSmartphoneIds.length === 0) {
+      this.getAssigned = false;
       const result = Swal.fire({
         text: `Bitte wählen Sie ein Smartphone aus`,
         icon: 'warning',
