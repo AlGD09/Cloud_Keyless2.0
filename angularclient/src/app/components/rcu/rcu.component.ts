@@ -6,6 +6,7 @@ import { RcuService } from '../../services/rcu.service';
 import { SmartphoneService } from '../../services/smartphone.service';
 import { Rcu } from '../../model/rcu';
 import { Smartphone } from '../../model/smartphone';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-rcu',
@@ -33,19 +34,49 @@ export class RcuComponent {
 
   register(): void {
     if (!this.rcuId || !this.name) {
-      alert('Bitte ID und Name eingeben.');
+      const result = Swal.fire({
+        text: `Bitte Name und ID eingeben`,
+        icon: 'warning',
+        showCancelButton: true,
+        showConfirmButton: false,
+        cancelButtonText: 'OK',
+        color: '#002B49', //Textfarbe
+        buttonsStyling: false,
+        customClass: {
+          // actions: 'space-x-4 justify-center',
+          cancelButton: 'text-[#0002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition focus:outline-none focus:ring-0'
+        }
+      });
+      // alert('Bitte ID und Name eingeben.');
       return;
     }
 
     const newRcu: Rcu = { rcuId: this.rcuId, name: this.name, location: this.location };
     this.rcuService.registerRcu(newRcu).subscribe({
-      next: rcu => {
+      next: async rcu => {
         this.registered = true;
         this.name = '';
         this.rcuId = '';
         this.location = '';
-        // 🔹 Nach erfolgreicher Registrierung weiterleiten zur Zuweisungsseite
-        this.router.navigate(['/maschine/assign'], { queryParams: { name: rcu.name, id: rcu.id } });
+
+        const result = await Swal.fire({
+          text: `Möchten Sie ein Smartphone der Maschine ${rcu.name} zuordnen?`,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Ja, zuweisen',
+          cancelButtonText: 'Nein, später',
+          color: '#002B49', //Textfarbe
+          buttonsStyling: false, // <— deaktiviert Standard-Button-Styling
+          customClass: {
+            actions: 'space-x-4 justify-center',
+            confirmButton: 'text-[#0002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition',
+            cancelButton: 'text-[#0002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+          }
+        });
+
+        if (result.isConfirmed) {
+          this.router.navigate(['/maschine/assign'], { queryParams: { name: rcu.name, id: rcu.id } });
+        }
       },
       error: err => {
         this.exists = true;

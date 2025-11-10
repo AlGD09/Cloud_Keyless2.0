@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RcuService } from '../../services/rcu.service';
 import { SmartphoneService } from '../../services/smartphone.service';
 import { Smartphone } from '../../model/smartphone';
-
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-rcu-assign',
@@ -44,7 +44,19 @@ export class RcuAssignComponent implements OnInit {
 
   assign(): void {
     if (!this.selectedSmartphoneIds || this.selectedSmartphoneIds.length === 0) {
-      this.message = 'Bitte mindestens ein Smartphone auswählen.';
+      const result = Swal.fire({
+        text: `Bitte wählen Sie ein Smartphone aus`,
+        icon: 'warning',
+        showCancelButton: true,
+        showConfirmButton: false,
+        cancelButtonText: 'OK',
+        color: '#002B49', //Textfarbe
+        buttonsStyling: false,
+        customClass: {
+          // actions: 'space-x-4 justify-center',
+          cancelButton: 'text-[#0002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition focus:outline-none focus:ring-0'
+        }
+      });
       return;
     }
 

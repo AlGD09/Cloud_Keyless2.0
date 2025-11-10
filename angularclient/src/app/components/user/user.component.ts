@@ -6,7 +6,7 @@ import { SmartphoneService } from '../../services/smartphone.service';
 import { UserService } from '../../services/user.service';
 import { Smartphone } from '../../model/smartphone';
 import { User } from '../../model/user';
-
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-user',
@@ -52,7 +52,20 @@ export class UserComponent {
 
   register(): void {
     if (!this.UserName || !this.SecretHash ) {
-      alert('Bitte User Name und Hash eingeben');
+      const result = Swal.fire({
+        text: `Bitte User Name und Hash eingeben`,
+        icon: 'warning',
+        showCancelButton: true,
+        showConfirmButton: false,
+        cancelButtonText: 'OK',
+        color: '#002B49', //Textfarbe
+        buttonsStyling: false,
+        customClass: {
+          // actions: 'space-x-4 justify-center',
+          cancelButton: 'text-[#0002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition focus:outline-none focus:ring-0'
+        }
+      });
+      // alert('Bitte User Name und Hash eingeben');
       return;
     }
     const newUser: User = { username: this.UserName, email: this.Email, secretHash: this.SecretHash };

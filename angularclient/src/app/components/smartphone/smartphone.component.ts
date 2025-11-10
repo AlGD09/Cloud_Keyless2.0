@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { User } from '../../model/user';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-smartphone',
@@ -66,12 +67,48 @@ export class SmartphoneComponent {
       deviceId: this.regDeviceId.trim(),
       name: this.regName.trim(),
     };
-    if (!body.deviceId || !body.name) { alert('Bitte alle Felder ausfüllen'); return; }
+    if (!body.deviceId || !body.name) {
+      const result = Swal.fire({
+        text: `Bitte Name und ID eingeben`,
+        icon: 'warning',
+        showCancelButton: true,
+        showConfirmButton: false,
+        cancelButtonText: 'OK',
+        color: '#002B49', //Textfarbe
+        buttonsStyling: false,
+        customClass: {
+          // actions: 'space-x-4 justify-center',
+          cancelButton: 'text-[#0002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition focus:outline-none focus:ring-0'
+        }
+      });
+
+
+      // alert('Bitte alle Felder ausfüllen');
+      return;
+    }
 
     this.smartphoneService.registerSmartphone(body).subscribe({
-      next: smart => {
+      next: async smart => {
         this.clearRegForm(); this.loadList(); this.registered = true;
-        this.router.navigate(['/smartphone/assign'], { queryParams: { id: smart.id, name: smart.name } });
+        const result = await Swal.fire({
+          text: `Möchten Sie einen Benutzer dem Gerät ${smart.name} zuordnen?`,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Ja, zuweisen',
+          cancelButtonText: 'Nein, später',
+          color: '#002B49', //Textfarbe
+          buttonsStyling: false, // <— deaktiviert Standard-Button-Styling
+          customClass: {
+            actions: 'space-x-4 justify-center',
+            confirmButton: 'text-[#0002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition',
+            cancelButton: 'text-[#0002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+          }
+        });
+
+        if (result.isConfirmed) {
+          this.router.navigate(['/smartphone/assign'], { queryParams: { id: smart.id, name: smart.name } });
+        }
+
       },
       error: err => { this.errorMsg = err.error?.message || 'Registrierung fehlgeschlagen'; }
     });
@@ -79,8 +116,21 @@ export class SmartphoneComponent {
 
   requestToken(): void {
     if (!this.selectedSmartphone) {
-            alert('Bitte ein Smartphone auswählen.');
-            return;
+      const result = Swal.fire({
+        text: `Bitte ein Smartphone auswählen`,
+        icon: 'warning',
+        showCancelButton: true,
+        showConfirmButton: false,
+        cancelButtonText: 'OK',
+        color: '#002B49', //Textfarbe
+        buttonsStyling: false,
+        customClass: {
+          // actions: 'space-x-4 justify-center',
+          cancelButton: 'text-[#0002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition focus:outline-none focus:ring-0'
+        }
+      });
+      // alert('Bitte ein Smartphone auswählen.');
+      return;
     }
 
     const { deviceId } = this.selectedSmartphone;

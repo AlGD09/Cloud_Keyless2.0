@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SmartphoneService } from '../../../services/smartphone.service';
 import { Smartphone } from '../../../model/smartphone';
-
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-einheiten-smartphones',
@@ -46,16 +46,27 @@ export class EinheitenSmartphonesComponent {
   }
 
   deleteSmartphone(id: number): void {
-    if (confirm('Möchten Sie dieses Smartphone wirklich löschen?')) {
-      this.smartphoneService.deleteSmartphone(id).subscribe({
-        next: () => {
-          this.loadData(); // Nach dem Löschen neu laden
-        },
-        error: () => {
-          this.errorMsg = 'Fehler beim Löschen des Smartphones.';
-        }
-      });
-    }
+    Swal.fire({
+      text: `Möchten Sie wirklich dieses Smartphone löschen?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Ja',
+      cancelButtonText: 'Nein',
+      color: '#002B49',
+      buttonsStyling: false,
+      customClass: {
+        actions: 'space-x-4 justify-center',
+        confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition',
+        cancelButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+      }
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.smartphoneService.deleteSmartphone(id).subscribe({
+          next: () => this.loadData(),
+          error: () => this.errorMsg = 'Fehler beim Löschen des Smartphones.'
+        });
+      }
+    });
   }
 
   getSmartphoneImage(smartphoneName: string): { src: string; height: string } {

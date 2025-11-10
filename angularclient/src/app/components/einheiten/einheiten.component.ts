@@ -7,6 +7,7 @@ import { UserService } from '../../services/user.service';
 import { Smartphone } from '../../model/smartphone';
 import { Rcu } from '../../model/rcu';
 import { User } from '../../model/user';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-einheiten',
@@ -79,17 +80,28 @@ export class EinheitenComponent {
 
 
   deleteRcu(id: number): void {
-      if (confirm('Möchten Sie diese RCU wirklich löschen?')) {
+    Swal.fire({
+      text: `Möchten Sie wirklich Maschine mit ID:${id} löschen?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Ja',
+      cancelButtonText: 'Nein',
+      color: '#002B49',
+      buttonsStyling: false,
+      customClass: {
+        actions: 'space-x-4 justify-center',
+        confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition',
+        cancelButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+      }
+    }).then(result => {
+      if (result.isConfirmed) {
         this.rcuService.deleteRcu(id).subscribe({
-          next: () => {
-            this.loadData(); // Nach dem Löschen neu laden
-          },
-          error: () => {
-            this.errorMsg = 'Fehler beim Löschen der RCU.';
-          }
+          next: () => this.loadData(),
+          error: () => this.errorMsg = 'Fehler beim Löschen der RCU.'
         });
       }
-    }
+    });
+  }
 
   deleteSmartphone(id: number): void {
     if (confirm('Möchten Sie dieses Smartphone wirklich löschen?')) {
@@ -105,16 +117,27 @@ export class EinheitenComponent {
   }
 
   deleteUser(id: number): void {
-    if (confirm('Möchten Sie diesen User wirklich löschen?')) {
-      this.userService.deleteUser(id).subscribe({
-        next: () => {
-          this.loadData(); // Nach dem Löschen neu laden
-        },
-        error: () => {
-          this.errorMsg = 'Fehler beim Löschen des Users.';
-        }
-      });
-    }
+    Swal.fire({
+      text: `Möchten Sie wirklich diesen Benutzer löschen?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Ja',
+      cancelButtonText: 'Nein',
+      color: '#002B49',
+      buttonsStyling: false,
+      customClass: {
+        actions: 'space-x-4 justify-center',
+        confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition',
+        cancelButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+      }
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.userService.deleteUser(id).subscribe({
+          next: () => this.loadData(),
+          error: () => this.errorMsg = 'Fehler beim Löschen des Users.'
+        });
+      }
+    });
   }
 
 

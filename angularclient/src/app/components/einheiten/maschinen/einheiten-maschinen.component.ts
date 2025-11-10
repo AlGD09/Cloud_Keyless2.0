@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { RcuService } from '../../../services/rcu.service';
 import { Rcu } from '../../../model/rcu';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-einheiten-maschinen',
@@ -47,17 +48,28 @@ export class EinheitenMaschinenComponent {
 
 
     deleteRcu(id: number): void {
-      if (confirm('Möchten Sie diese RCU wirklich löschen?')) {
-        this.rcuService.deleteRcu(id).subscribe({
-          next: () => {
-            this.loadData(); // Nach dem Löschen neu laden
-          },
-          error: () => {
-            this.errorMsg = 'Fehler beim Löschen der RCU.';
+        Swal.fire({
+          text: `Möchten Sie wirklich diese Maschine löschen?`,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Ja',
+          cancelButtonText: 'Nein',
+          color: '#002B49',
+          buttonsStyling: false,
+          customClass: {
+            actions: 'space-x-4 justify-center',
+            confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition',
+            cancelButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+          }
+        }).then(result => {
+          if (result.isConfirmed) {
+            this.rcuService.deleteRcu(id).subscribe({
+              next: () => this.loadData(),
+              error: () => this.errorMsg = 'Fehler beim Löschen der RCU.'
+            });
           }
         });
       }
-    }
 
     getMachineImage(machineName: string): { src: string; height: string } {
         if (!machineName) return { src: 'maschine.png', height: 'h-28' };
