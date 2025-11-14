@@ -17,7 +17,7 @@ public class Event {
     private String name;
     private String rcuId;
     private String deviceName;
-
+    private String deviceId;
     private String result;
     private LocalDateTime eventTime;
 
@@ -33,6 +33,9 @@ public class Event {
 
     public String getDeviceName() { return deviceName; }
     public void setDeviceName(String deviceName) { this.deviceName = deviceName; }
+
+    public String getDeviceId() { return deviceId; }
+    public void setDeviceId(String deviceId) { this.deviceId = deviceId; }
 
     public String getResult() { return result; }
     public void setResult(String result) { this.result = result; }

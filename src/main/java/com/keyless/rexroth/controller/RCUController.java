@@ -73,7 +73,7 @@ public class RCUController {
 
     @PostMapping("/events/add")
     public ResponseEntity<Void> neuesEreignis(@RequestBody RCUEreignisDTO dto) {
-        rcuService.addNewEvent(dto.getRcuId(), dto.getDeviceName(), dto.getResult());
+        rcuService.addNewEvent(dto.getRcuId(), dto.getDeviceName(), dto.getDeviceId(), dto.getResult());
         return ResponseEntity.noContent().build();
     }
 

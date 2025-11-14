@@ -74,12 +74,13 @@ public class RCUService {
         return eventRepository.findTop10ByRcuIdOrderByEventTimeDesc(rcuId);
     }
 
-    public void addNewEvent(String rcuId, String deviceName, String result) {
+    public void addNewEvent(String rcuId, String deviceName, String deviceId, String result) {
         RCU rcu = rcuRepository.findByRcuId(rcuId);
         Event event = new Event();
         event.setName(rcu.getName());
         event.setRcuId(rcuId);
         event.setDeviceName(deviceName);
+        event.setDeviceId(deviceId);
         event.setResult(result);
         event.setEventTime(java.time.LocalDateTime.now());
 
@@ -94,16 +95,16 @@ public class RCUService {
             eventRepository.delete(oldest);
             events.remove(0);
         }
-        Anomaly anomaly = detectAnomalyForRcu(rcuId, deviceName, event);
+        Anomaly anomaly = detectAnomalyForRcu(rcuId, deviceName, deviceId, event);
         if (anomaly != null) {
             anomalyRepository.save(anomaly);
         }
 
     }
 
-    public Anomaly detectAnomalyForRcu(String rcuId, String deviceName, Event event) {
+    public Anomaly detectAnomalyForRcu(String rcuId, String deviceName, String deviceId, Event event) {
 
-        List<Event> events = eventRepository.findTop10ByRcuIdAndDeviceNameOrderByEventTimeDesc(rcuId, deviceName);
+        List<Event> events = eventRepository.findTop10ByRcuIdAndDeviceIdOrderByEventTimeDesc(rcuId, deviceId);
 
         if (events.size() < 2) return null;
 
@@ -119,8 +120,8 @@ public class RCUService {
 
         if (result.equals("Fehler") && penultimateResult.equals("Fehler")) {
 
-            if (!anomalyRepository.existsByRcuIdAndDeviceNameAndEventTime(rcuId, deviceName, event.getEventTime())) {
-                return createAnomaly(rcuId, deviceName, event.getEventTime());
+            if (!anomalyRepository.existsByRcuIdAndDeviceIdAndEventTime(rcuId, deviceId, event.getEventTime())) {
+                return createAnomaly(rcuId, deviceName, deviceId, event.getEventTime());
             }
 
         }
@@ -128,11 +129,12 @@ public class RCUService {
         return null;
     }
 
-    private Anomaly createAnomaly(String rcuId, String device, LocalDateTime ts) {
+    private Anomaly createAnomaly(String rcuId, String deviceName, String deviceId, LocalDateTime ts) {
         RCU rcu = rcuRepository.findByRcuId(rcuId);
         Anomaly anomaly = new Anomaly();
         anomaly.setName(rcu.getName());
-        anomaly.setDeviceName(device);
+        anomaly.setDeviceName(deviceName);
+        anomaly.setDeviceId(deviceId);
         anomaly.setRcuId(rcuId);
         anomaly.setEventTime(ts);
         return anomaly;

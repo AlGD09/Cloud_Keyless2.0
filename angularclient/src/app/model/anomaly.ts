@@ -4,6 +4,7 @@ export interface Anomaly {
   name: string;
   rcuId: string;
   deviceName: string;
+  deviceId: string;
   eventTime?: string;
 
 }

@@ -11,5 +11,5 @@ import java.util.List;
 public interface AnomalyRepository extends JpaRepository<Anomaly, Long> {
     Anomaly findByName(String name);
     List<Anomaly> findAllByOrderByEventTimeDesc();
-    Boolean existsByRcuIdAndDeviceNameAndEventTime(String rcuId, String deviceName, LocalDateTime eventTime);
+    Boolean existsByRcuIdAndDeviceIdAndEventTime(String rcuId, String deviceId, LocalDateTime eventTime);
 }
