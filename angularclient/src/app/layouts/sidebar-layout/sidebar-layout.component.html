@@ -113,6 +113,23 @@
              routerLinkActive="text-blue-600 font-semibold">Zuweisungen</a>
         </div>
       </div>
+
+      <!-- Sicherheitsereignisse -->
+      <a
+        routerLink="/ereignisse"
+        routerLinkActive="bg-blue-50 text-blue-600"
+        class="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-blue-50 transition"
+      >
+        <div class="flex items-center gap-3">
+          <i class="fas fa-binoculars w-5 text-gray-500 mx-auto" [ngClass]="{ 'mx-0': isExpanded }"></i>
+          <span
+            *ngIf="isExpanded"
+            class="font-medium transition-opacity duration-300 whitespace-nowrap"
+          >Systemereignisse</span
+          >
+        </div>
+      </a>
+
     </nav>
 
     <div *ngIf="isExpanded" class="flex flex-col items-center border-t border-gray-100 p-4 space-y-2">

@@ -13,6 +13,7 @@ import { SidebarLayoutComponent } from './layouts/sidebar-layout/sidebar-layout.
 import { EinheitenLayoutComponent } from './layouts/einheiten-layout/einheiten-layout.component';
 import { EinheitenSmartphonesComponent } from './components/einheiten/smartphones/einheiten-smartphones.component';
 import { EinheitenMaschinenComponent } from './components/einheiten/maschinen/einheiten-maschinen.component';
+import { EventComponent } from './components/ereignisse/ereignisse.component';
 
 export const routes: Routes = [
   {
@@ -39,7 +40,8 @@ export const routes: Routes = [
           { path: 'maschinen', component: EinheitenMaschinenComponent },
         ],
       },
-      { path: 'zuweisungen', component: ZuweisungenComponent}
+      { path: 'zuweisungen', component: ZuweisungenComponent },
+      { path: 'ereignisse', component: EventComponent },
     ],
   },
 ];

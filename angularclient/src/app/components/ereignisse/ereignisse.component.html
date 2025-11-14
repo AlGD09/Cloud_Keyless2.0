@@ -1,0 +1,86 @@
+<div class="min-h-screen w-full bg-white text-gray-900 flex flex-col p-0 m-0">
+
+  <!-- Überschrift -->
+  <div class="px-20 pt-28 pb-6">
+    <h1 class="text-4xl font-extrabold text-[#002B49]">Sicherheitsereignisse</h1>
+    <p class="text-gray-600 leading-relaxed">
+      <br />
+      Diese Sektion stellt eine Übersicht der Maschinenereignisse bereit. Dazu werden Anomalien erkannt und gemeldet.
+      <br />
+    </p>
+  </div>
+
+  <div class="flex flex-row gap-8 px-20 mt-8">
+    <div class="bg-white rounded-2xl w-[50%]">
+      <h2 class="text-xl font-semibold text-[#002B49] mb-8">
+        Ereignisse-Übersicht
+      </h2>
+      <!-- SVG-Container -->
+      <div class="w-full flex justify-center items-center mb-4">
+        <svg class="event-graph w-full" style="height: 1200px;"></svg>
+      </div>
+    </div>
+
+    <div class="w-[50%]">
+      <h2 class="text-xl font-semibold text-[#002B49] mb-4">
+        Anomalien
+      </h2>
+      <div
+        *ngIf="anomalies?.length; else noAnomalies"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6"
+      >
+        <div
+          *ngFor="let a of anomalies"
+          class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 p-6 flex flex-col items-center text-center"
+        >
+          <!-- Symbol oben -->
+          <div class="bg-white shadow-sm rounded-lg p-14 mb-2 text-center">
+            <i class="fas fa-exclamation text-6xl text-red-500"></i>
+          </div>
+
+          <!-- Name und ID -->
+          <div class="mb-3">
+            <h3 class="text-lg font-semibold text-[#002B49] leading-tight">
+              {{ a.name || 'Unbenannte Maschine'}}
+            </h3>
+            <p class="text-xs text-gray-500">ID: {{ a.rcuId }}</p>
+          </div>
+
+          <!-- Smartphone ID -->
+          <div class="mb-3">
+            <h3 class="text-lg font-semibold text-[#002B49] leading-tight">
+              {{ a.deviceName || 'Unbekanntes Smartphone'}}
+            </h3>
+            <p class="text-xs text-gray-500">ID: {{ a.rcuId }}</p>
+          </div>
+
+          <!-- Time -->
+          <div class="flex justify-left items-baseline space-x-2">
+            <div class="font-semibold text-gray-900">Last Seen:</div>
+            <div class="font-medium text-sm">
+              {{ a.eventTime ? (a.eventTime | date:'dd.MM.yyyy - HH:mm') : '—' }}
+            </div>
+          </div>
+
+          <!-- Löschen-Button unten -->
+          <button
+            (click)="deleteAnomaly(a.id!)"
+            class="mt-auto text-red-700 hover:text-red-700 transition"
+            title="Löschen"
+          >
+            <i class="fas fa-trash"></i>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- Keine Anomalien -->
+      <ng-template #noAnomalies>
+        <div class="text-gray-500 italic mt-6 text-sm text-center">
+          Keine Anomalien erkannt
+        </div>
+      </ng-template>
+
+    </div>
+  </div>
+</div>
