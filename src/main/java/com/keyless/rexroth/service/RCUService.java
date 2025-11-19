@@ -10,7 +10,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import reactor.core.publisher.Sinks;
+import reactor.core.publisher.Flux;
 
 @Service
 
@@ -28,6 +31,17 @@ public class RCUService {
     @Autowired
     private AnomalyRepository anomalyRepository;
 
+    // Jede RCU (jede Maschine) erhält ihren eigenen SSE-Stream
+    private final Map<String, Sinks.Many<String>> sinkMap = new ConcurrentHashMap<>();
+
+    // Sink holen oder neu erstellen
+    private Sinks.Many<String> getSink(String rcuId) {
+        return sinkMap.computeIfAbsent(
+                rcuId,
+                id -> Sinks.many().multicast().onBackpressureBuffer()
+        );
+    }
+
     public RCU registerRcu(String rcuId, String name, String location) {
         if (rcuRepository.findByRcuId(rcuId) != null) {
             return null; // existiert bereits
@@ -36,6 +50,7 @@ public class RCUService {
         rcu.setRcuId(rcuId);
         rcu.setName(name);
         rcu.setLocation(location);
+        rcu.setStatus("inactive");
         return rcuRepository.save(rcu);
     }
 
@@ -83,6 +98,10 @@ public class RCUService {
         event.setDeviceId(deviceId);
         event.setResult(result);
         event.setEventTime(java.time.LocalDateTime.now());
+        if (result.equals("Entsperrt")) {
+            rcu.setStatus("active");
+            rcuRepository.save(rcu);
+        }
 
         eventRepository.save(event);
 
@@ -90,7 +109,7 @@ public class RCUService {
         List<Event> events = eventRepository.findByRcuIdOrderByEventTimeAsc(rcuId);
 
         // Wenn mehr als 10 vorhanden -> älteste löschen
-        while (events.size() > 20) {
+        while (events.size() > 10) {
             Event oldest = events.get(0);   // erstes Element = ältestes
             eventRepository.delete(oldest);
             events.remove(0);
@@ -154,6 +173,27 @@ public class RCUService {
 
     public void deleteAllAnomalies() {
         anomalyRepository.deleteAll();
+    }
+
+    public Flux<String> streamEvents(String rcuId) {
+        return getSink(rcuId)
+                .asFlux()
+                .map(event -> event + "\n\n");
+    }
+
+    // Wird aufgerufen, wenn von der App aus LOCK ausgeführt werden soll
+    public void sendLockEvent(String rcuId) {
+        getSink(rcuId).tryEmitNext("LOCK");
+        RCU rcu = rcuRepository.findByRcuId(rcuId);
+        if (rcu != null) {
+            rcu.setStatus("inactive");
+            rcuRepository.save(rcu);
+        }
+    }
+
+    // Für weitere Events
+    public void sendEvent(String rcuId, String event) {
+        getSink(rcuId).tryEmitNext(event);
     }
 
 

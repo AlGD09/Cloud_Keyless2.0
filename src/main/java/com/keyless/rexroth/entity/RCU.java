@@ -25,6 +25,7 @@ public class RCU {
     private String name;
     private String location;
     private LocalDateTime registeredAt;
+    private String status;
 
     // Beziehung: jede RCU kann einem Smartphone zugeordnet sein
     //@ManyToOne
@@ -62,6 +63,9 @@ public class RCU {
 
     public LocalDateTime getRegisteredAt() { return registeredAt; }
     public void setRegisteredAt(LocalDateTime registeredAt) { this.registeredAt = registeredAt; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
     //public Smartphone getAssignedSmartphone() { return assignedSmartphone; }
     //public void setAssignedSmartphone(Smartphone assignedSmartphone) { this.assignedSmartphone = assignedSmartphone; }

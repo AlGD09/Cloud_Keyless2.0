@@ -245,6 +245,32 @@ public class SmartphoneService {
         return assignedrcus;
     }
 
+    public List<RCU> getActiveRcusForSmartphone(String smartphoneId) {
+        Smartphone existing = smartphoneRepository.findByDeviceId(smartphoneId);
+        if (existing == null) {
+            return Collections.emptyList(); // besser als null zurückgeben
+        }
+
+        List<RCU> rcuList = rcuRepository.findAll();
+        List<RCU> assignedrcus = new ArrayList<>();
+        List<RCU> activercus = new ArrayList<>();
+
+        for (RCU rcu : rcuList) {
+            if (rcu.getAllowedSmartphones() != null &&
+                    rcu.getAllowedSmartphones().contains(existing)) {
+                assignedrcus.add(rcu);
+            }
+        }
+
+        for (RCU Rcu: assignedrcus) {
+            if (Rcu.getStatus().equals("active")) {
+                activercus.add(Rcu);
+            }
+        }
+
+        return activercus;
+    }
+
     public Smartphone assignUsers(Long smartphoneId, List<Long> UserIds) {
         Smartphone smart = smartphoneRepository.findById(smartphoneId).orElse(null);
         if (smart == null) return null;

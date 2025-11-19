@@ -12,7 +12,8 @@ import com.keyless.rexroth.service.RCUService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.http.MediaType;
+import reactor.core.publisher.Flux;
 
 import java.util.Map;
 import java.util.List;
@@ -107,6 +108,17 @@ public class RCUController {
     public ResponseEntity<Void> deleteAllAnomalies() {
         rcuService.deleteAllAnomalies();
         return ResponseEntity.noContent().build();
+    }
+
+    // Endpoints zur Maschinenverriegelung
+    @GetMapping(value = "/sse/{rcuId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> streamEvents(@PathVariable String rcuId) {
+        return rcuService.streamEvents(rcuId);
+    }
+
+    @PostMapping("/lock/{rcuId}")
+    public void lock(@PathVariable String rcuId) {
+        rcuService.sendLockEvent(rcuId);
     }
 
 }

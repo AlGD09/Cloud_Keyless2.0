@@ -102,6 +102,17 @@ public class SmartphoneController {
         return ResponseEntity.ok(rcus);
     }
 
+    @GetMapping("/active/rcus/{smartphoneId}")
+    public ResponseEntity<List<RCU>> getSmartphoneActiveRcus(@PathVariable String smartphoneId) {
+        List<RCU> rcus = smartphoneService.getActiveRcusForSmartphone(smartphoneId);
+
+        if (rcus.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(rcus);
+    }
+
     @PostMapping("/assign/users")
     public ResponseEntity<?> assignUsers(@RequestBody SmartphoneAssignDTO dto) {
         Smartphone updated = smartphoneService.assignUsers(dto.getsmartphoneId(), dto.getUserIds());
