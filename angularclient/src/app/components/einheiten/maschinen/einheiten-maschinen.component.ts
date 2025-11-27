@@ -213,6 +213,36 @@ export class EinheitenMaschinenComponent implements OnInit {
                     // Animation stoppen, wenn Status wechselt
                     this.cancelConnectingAnimation = () => clearInterval(interval);
                   }
+                } else if (updated.status === "operational"){
+                  btnContainer.innerHTML = `
+                    <!-- Hinweistext über Buttons -->
+                    <div class="text-left text-[#002B49] font-semibold text-xl mb-2 pt-2 px-10 w-full">
+                      Notfallverriegelung
+
+                      <div style="border-bottom: 1px dotted #d1d5db; margin: 5px 0 22px 0; width: 100%; display: block;"></div>
+                    </div>
+
+                    <!-- Erste Zeile: Entriegeln / Verriegeln nebeneinander -->
+                    <div class="flex justify-center mb-3">
+
+                        <button id="NotVerriegelung"
+                          style="outline: none; box-shadow: none; position: relative;"
+                          class="px-4 group flex items-center justify-center gap-4 bg-[#E0E0E0]/10 w-42 h-12 rounded-lg text-red-800 text-lg transition hover:text-red-900 hover:bg-[#F2F2F2]">
+
+                          <i class="fa-solid fa-lock text-3xl"></i>
+                          <span>Maschine verriegeln</span>
+
+                        </button>
+
+                    </div>
+                  `;
+
+                  const btn4 = document.getElementById("NotVerriegelung");
+                  if (btn4) {
+                    btn4.addEventListener("click", () => {
+                      this.NotfallLock(updated.rcuId);
+                    });
+                  }
 
                 } else {
                   this.cancelConnectingAnimation?.();   // <--- HINZUFÜGEN
@@ -421,8 +451,33 @@ export class EinheitenMaschinenComponent implements OnInit {
                 ` : ''
               }
 
+              ${ (r.status == "operational") ? `
+                <!-- Hinweistext über Buttons -->
+                <div class="text-left text-[#002B49] font-semibold text-xl mb-2 pt-2 px-10 w-full">
+                  Notfallverriegelung
 
-              ${ (!["inactive", "idle", "Remote - idle", "Remote - operational", "remote mode requested"].includes(r.status ?? "")) ? `
+                  <div style="border-bottom: 1px dotted #d1d5db; margin: 5px 0 22px 0; width: 100%; display: block;"></div>
+                </div>
+
+                <!-- Erste Zeile: Entriegeln / Verriegeln nebeneinander -->
+                <div class="flex justify-center mb-3">
+
+                    <button id="NotVerriegelung"
+                      style="outline: none; box-shadow: none; position: relative;"
+                      class="px-4 group flex items-center justify-center gap-4 bg-[#E0E0E0]/10 w-42 h-12 rounded-lg text-red-800 text-lg transition hover:text-red-900 hover:bg-[#F2F2F2]">
+
+                      <i class="fa-solid fa-lock text-3xl"></i>
+                      <span>Maschine verriegeln</span>
+
+                    </button>
+
+                </div>
+
+                ` : ''
+              }
+
+
+              ${ (r.status == "offline") ? `
                 <div class="flex justify-center pt-14 px-4 text-gray-700 font-semibold text-lg rounded-lg">
                 Fernsteuerung nicht verfügbar
                 </div>
@@ -455,6 +510,7 @@ export class EinheitenMaschinenComponent implements OnInit {
           const btn1 = document.getElementById("RemoteEntriegelung");
           const btn2 = document.getElementById("StopRemoteMode");
           const btn3 = document.getElementById("RemoteVerriegelung");
+          const btn4 = document.getElementById("NotVerriegelung");
 
           if (btn) {
             btn.addEventListener("click", () => {
@@ -477,6 +533,12 @@ export class EinheitenMaschinenComponent implements OnInit {
           if (btn3) {
             btn3.addEventListener("click", () => {
               this.RemoteLock(r.rcuId);  // <--- Deine Funktion aufrufen
+            });
+          }
+
+          if (btn4) {
+            btn4.addEventListener("click", () => {
+              this.NotfallLock(r.rcuId);
             });
           }
         }
@@ -614,6 +676,67 @@ export class EinheitenMaschinenComponent implements OnInit {
 
     RemoteLock(rcuId: string) {
       this.rcuService.remoteLock(rcuId).subscribe({
+        next: (data: Remote) => {
+          this.loadData()
+        },
+        error: err => {
+          if (err.status === 504) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Fehler',
+              text: 'Die Maschine ist nicht erreichbar - Fernsteuerung wird verlassen',
+
+              showConfirmButton: true,
+              confirmButtonText: 'Ok',
+
+              showCancelButton: false,
+              buttonsStyling: false,
+
+              customClass: {
+                confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+              }
+            });
+          } else if (err.status === 0) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Verbindung fehlgeschlagen',
+              text: 'Der Server ist nicht erreichbar. Bitte überprüfen Sie die Verbindung.',
+
+              showConfirmButton: true,
+              confirmButtonText: 'Ok',
+
+              showCancelButton: false,
+              buttonsStyling: false,
+
+              customClass: {
+                confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+              }
+            });
+
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Fehler',
+              text: `Ein unerwarteter Fehler ist aufgetreten: ${err.status}`,
+
+              showConfirmButton: true,
+              confirmButtonText: 'Ok',
+
+              showCancelButton: false,
+              buttonsStyling: false,
+
+              customClass: {
+                confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+              }
+            });
+          }
+        }
+      });
+
+    }
+
+    NotfallLock(rcuId: string) {
+      this.rcuService.notfallLock(rcuId).subscribe({
         next: (data: Remote) => {
           this.loadData()
         },

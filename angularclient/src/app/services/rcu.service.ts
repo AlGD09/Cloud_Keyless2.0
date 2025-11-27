@@ -78,6 +78,11 @@ remoteLock(rcuId: string): Observable<Remote> {
   return this.http.post<Remote>(`${this.baseUrl}/remote/lock/${rcuId}`, {});
 }
 
+notfallLock(rcuId: string): Observable<Remote> {
+  return this.http.post<Remote>(`${this.baseUrl}/notfall/lock/${rcuId}`, {});
+}
+
+
   }
 
 

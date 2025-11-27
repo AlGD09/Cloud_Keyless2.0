@@ -161,8 +161,17 @@ public class RCUService {
             confirmLock(rcuId);
         }
 
+        if (lastEvent != null) {
+            if (result.equals("Verriegelt") && lastEvent.getResult().equals("Notfallverriegelung")){
+                // Do nothing
+            } else {
+                eventRepository.save(event);
+            }
+        } else {
+            eventRepository.save(event);
+        }
 
-        eventRepository.save(event);
+
 
         // Alle Events dieser RCU holen – sortiert
         List<Event> events = eventRepository.findByRcuIdOrderByEventTimeAsc(rcuId);
@@ -272,7 +281,9 @@ public class RCUService {
                             if (event.getResult().equals("Remote Entriegelt")) {
                                 addNewEvent(rcuId, "Remote Control", "1", "Ungewöhnliche Verriegelung");
                             }
-                            addNewEvent(rcuId, "Remote Control", "1", "Fernsteuerung deaktiviert");
+                            if (!event.getResult().equals("Notfallverriegelung")) {  // Rare Case verhindern Notfallverhinderung + Connection Lost gleichzeitig
+                                addNewEvent(rcuId, "Remote Control", "1", "Fernsteuerung deaktiviert");
+                            }
                         }
                         if (rcu != null) {
                             rcu.setStatus("offline");
@@ -387,7 +398,7 @@ public class RCUService {
     public DeferredResult<ResponseEntity<Map<String, Object>>> remoteLock(String rcuId) {
         DeferredResult<ResponseEntity<Map<String, Object>>> deferredResult = new DeferredResult<>(TIMEOUT_MILLIS);
 
-        Event event = eventRepository.findTop1ByRcuIdOrderByEventTimeDesc(rcuId);
+        Event event = eventRepository.findTop1ByRcuIdOrderByEventTimeDesc(rcuId);  // Get Last Event
 
         operationResults.put(rcuId, deferredResult);
 
@@ -401,7 +412,9 @@ public class RCUService {
             if (event.getResult().equals("Remote Entriegelt")) {
                 addNewEvent(rcuId, "Remote Control", "1", "Ungewöhnliche Verriegelung");
             }
-            addNewEvent(rcuId, "Remote Control", "1", "Fernsteuerung deaktiviert");
+            if (!event.getResult().equals("Notfallverriegelung")) {
+                addNewEvent(rcuId, "Remote Control", "1", "Fernsteuerung deaktiviert");
+            }
             RCU rcu = rcuRepository.findByRcuId(rcuId);
             if (rcu != null) {
                 rcu.setStatus("offline");
@@ -416,6 +429,15 @@ public class RCUService {
 
     public void sendRemoteLockEvent(String rcuId) {
         Sinks.Many<String> sink = activeSinkMap.get(rcuId);
+        if (sink != null) {
+            sink.tryEmitNext("LOCK");
+        }
+    }
+
+    public void sendNotfallLockEvent(String rcuId) {
+        Sinks.Many<String> sink = activeSinkMap.get(rcuId);
+        exitFlagMap.put(rcuId, true);
+        // addNewEvent(rcuId, "Remote Control", "1", "Notfallverriegelung");
         if (sink != null) {
             sink.tryEmitNext("LOCK");
         }

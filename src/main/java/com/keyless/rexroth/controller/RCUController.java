@@ -133,6 +133,16 @@ public class RCUController {
         return deferredResult;
     }
 
+    @PostMapping("/notfall/lock/{rcuId}")
+    public DeferredResult<ResponseEntity<Map<String, Object>>> notfallLock(@PathVariable String rcuId) {
+        rcuService.addNewEvent(rcuId, "Remote Control", "1", "Notfallverriegelung");
+        DeferredResult<ResponseEntity<Map<String, Object>>> deferredResult = rcuService.remoteLock(rcuId);
+
+        rcuService.sendNotfallLockEvent(rcuId);
+
+        return deferredResult;
+    }
+
     // Endpoints zum Remote Control
     @PostMapping("/start/remote/{rcuId}")
     public ResponseEntity<Void> setRcuStatus(@PathVariable String rcuId) {

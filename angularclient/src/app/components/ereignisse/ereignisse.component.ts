@@ -324,6 +324,7 @@ export class EventComponent implements OnInit {
       case 'Fernsteuerung deaktiviert': return '#4D004D';
       case 'Remote Entriegelt': return '#4C7F4C';
       case 'Remote Verriegelt': return '#A60026';
+      case 'Notfallverriegelung': return 'orange';
       default: return 'gray';
     }
   }
@@ -339,6 +340,7 @@ export class EventComponent implements OnInit {
       case 'Fernsteuerung deaktiviert': return 350;
       case 'Remote Entriegelt': return 550;
       case 'Remote Verriegelt': return 550;
+      case 'Notfallverriegelung': return 150;
       default: return 400;
     }
   }
