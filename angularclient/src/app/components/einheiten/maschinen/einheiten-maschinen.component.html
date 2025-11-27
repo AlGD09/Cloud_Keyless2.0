@@ -61,7 +61,8 @@
               'text-green-600': r.status === 'idle',
               'text-gray-600': r.status === 'offline',
               'text-orange-700': r.status === 'operational',
-              'text-[#800080]': r.status === 'remote mode',
+              'text-green-700': r.status === 'Remote - idle',
+              'text-orange-800': r.status === 'Remote - operational',
               'text-[#CD853F]': r.status === 'remote mode requested',
               'text-gray-500': !r.status
             }"
@@ -73,7 +74,7 @@
 
         <!-- Löschen-Button unten -->
         <button
-          (click)="deleteRcu(r.id!)"
+          (click)="deleteRcu(r.id!); $event.stopPropagation()"
           class="mt-auto text-red-700 hover:text-red-700 transition"
           title="Löschen"
         >

@@ -5,6 +5,7 @@ import { Rcu } from '../model/rcu';
 import { Smartphone } from '../model/smartphone';
 import { Event } from '../model/event';
 import { Anomaly } from '../model/anomaly';
+import { Remote } from '../model/remote';
 
 @Injectable({
   providedIn: 'root'
@@ -63,6 +64,18 @@ deleteAllAnomalies() {
 
 startRemoteMode(rcuId: string) {
   return this.http.post<void>(`${this.baseUrl}/start/remote/${rcuId}`, {});
+}
+
+stopRemoteMode(rcuId: string) {
+  return this.http.post<Remote>(`${this.baseUrl}/remote/exit/${rcuId}`, {});
+}
+
+remoteUnlock(rcuId: string): Observable<Remote> {
+  return this.http.post<Remote>(`${this.baseUrl}/remote/unlock/${rcuId}`, {});
+}
+
+remoteLock(rcuId: string): Observable<Remote> {
+  return this.http.post<Remote>(`${this.baseUrl}/remote/lock/${rcuId}`, {});
 }
 
   }

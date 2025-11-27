@@ -320,6 +320,10 @@ export class EventComponent implements OnInit {
       case 'Zugang autorisiert': return 'blue';
       case 'Entriegelt': return 'green';
       case 'Verriegelt': return 'red';
+      case 'Fernsteuerung aktiviert': return '#990099';
+      case 'Fernsteuerung deaktiviert': return '#4D004D';
+      case 'Remote Entriegelt': return '#4C7F4C';
+      case 'Remote Verriegelt': return '#A60026';
       default: return 'gray';
     }
   }
@@ -331,6 +335,10 @@ export class EventComponent implements OnInit {
       case 'Zugang autorisiert': return 350;
       case 'Entriegelt': return 550;
       case 'Verriegelt': return 550;
+      case 'Fernsteuerung aktiviert': return 350;
+      case 'Fernsteuerung deaktiviert': return 350;
+      case 'Remote Entriegelt': return 550;
+      case 'Remote Verriegelt': return 550;
       default: return 400;
     }
   }

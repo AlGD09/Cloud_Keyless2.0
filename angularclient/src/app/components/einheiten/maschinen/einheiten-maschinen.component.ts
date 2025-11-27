@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { RcuService } from '../../../services/rcu.service';
 import { Rcu } from '../../../model/rcu';
+import { Remote } from '../../../model/remote';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -22,6 +23,8 @@ export class EinheitenMaschinenComponent implements OnInit {
     loading = false;
     errorMsg = '';
 
+    private cancelConnectingAnimation: (() => void) | null = null;
+
     constructor(
       private rcuService: RcuService,
       private router: Router
@@ -38,6 +41,10 @@ export class EinheitenMaschinenComponent implements OnInit {
 
     loadData(): void {
       this.loading = true;
+
+      // Stoppe evtl. laufende Punkt-Animation vom vorherigen Popup
+      this.cancelConnectingAnimation?.();
+      this.cancelConnectingAnimation = null;
 
       this.rcuService.getAllRcus().subscribe({
         next: (data: Rcu[]) => {
@@ -63,14 +70,14 @@ export class EinheitenMaschinenComponent implements OnInit {
 
               if (btnContainer) {
 
-                if (updated.status === "inactive" || updated.status === "idle") {
+                if (updated.status === "idle") {
 
                   // Button rendern
                   btnContainer.innerHTML = `
                     <button id="StartRemoteMode"
                       style="outline: none; box-shadow: none;"
-                      class="px-4 py-2 text-[#800080] font-semibold text-lg rounded-lg hover:text-[#4D2D61] transition">
-                      FERNSTEUERUNG STARTEN
+                      class="px-4 py-14 text-[#4D004D] font-semibold text-lg rounded-lg hover:text-[#330033] transition">
+                      <<< FERNSTEUERUNG STARTEN >>>
                     </button>
                   `;
 
@@ -82,9 +89,142 @@ export class EinheitenMaschinenComponent implements OnInit {
                     });
                   }
 
+                } else if (updated.status === "Remote - idle") {
+                  this.cancelConnectingAnimation?.();   // <--- HINZUFÜGEN
+                  this.cancelConnectingAnimation = null;
+                  btnContainer.innerHTML = `
+
+                    <!-- Hinweistext über Buttons -->
+                    <div class="text-left text-[#002B49] font-semibold text-xl mb-2 pt-2 px-10 w-full">
+                      Fernsteuerung ist aktiv
+
+                      <div style="border-bottom: 1px dotted #d1d5db; margin: 5px 0 22px 0; width: 100%; display: block;"></div>
+                    </div>
+
+                    <!-- Erste Zeile: Entriegeln / Verriegeln nebeneinander -->
+                    <div class="flex justify-center mb-3">
+
+                        <button id="RemoteEntriegelung"
+                          style="outline: none; box-shadow: none; position: relative;"
+                          class="px-4 group flex items-center justify-center gap-4 bg-[#E0E0E0]/10 w-42 h-12 rounded-lg text-[#228B22] text-lg transition hover:text-[#006400] hover:bg-[#F2F2F2]">
+
+                          <i class="fa-solid fa-lock-open text-3xl"></i>
+                          <span>Maschine entriegeln</span>
+
+                        </button>
+
+                    </div>
+
+                    <!-- Zweite Zeile: Button zentriert darunter -->
+                    <div class="flex justify-center mt-2">
+
+                        <button id="StopRemoteMode"
+                          style="outline: none; box-shadow: none;"
+                          class="px-4 py-2 text-[#4D004D] font-semibold text-lg rounded-lg hover:text-[#330033] transition">
+                          <<< FERNSTEUERUNG BEENDEN >>>
+                        </button>
+
+                    </div>
+                  `;
+
+                  const btn1 = document.getElementById("RemoteEntriegelung");
+                  if (btn1) {
+                    btn1.addEventListener("click", () => {
+                      this.RemoteUnlock(updated.rcuId);
+                    });
+                  }
+
+                  const btn2 = document.getElementById("StopRemoteMode");
+                  if (btn2) {
+                    btn2.addEventListener("click", () => {
+                      this.stopRemoteMode(updated.rcuId);
+                    });
+                  }
+
+                } else if (updated.status === "Remote - operational") {
+                  btnContainer.innerHTML = `
+
+                    <!-- Hinweistext über Buttons -->
+                    <div class="text-left text-[#002B49] font-semibold text-xl mb-2 pt-2 px-10 w-full">
+                      Fernsteuerung ist aktiv
+
+                      <div style="border-bottom: 1px dotted #d1d5db; margin: 5px 0 22px 0; width: 100%; display: block;"></div>
+                    </div>
+
+                    <!-- Erste Zeile: Entriegeln / Verriegeln nebeneinander -->
+                    <div class="flex justify-center mb-3">
+
+                        <button id="RemoteVerriegelung"
+                          style="outline: none; box-shadow: none; position: relative;"
+                          class="px-4 group flex items-center justify-center gap-4 bg-[#E0E0E0]/10 w-42 h-12 rounded-lg text-red-800 text-lg transition hover:text-red-900 hover:bg-[#F2F2F2]">
+
+                          <i class="fa-solid fa-lock text-3xl"></i>
+                          <span>Maschine verriegeln</span>
+
+                        </button>
+
+                    </div>
+
+                    <!-- Zweite Zeile: Button zentriert darunter -->
+                    <div class="flex justify-center mt-2">
+
+                        <button id="StopRemoteMode"
+                          style="outline: none; box-shadow: none;"
+                          class="px-4 py-2 text-[#4D004D] font-semibold text-lg rounded-lg hover:text-[#330033] transition">
+                          <<< FERNSTEUERUNG BEENDEN >>>
+                        </button>
+
+                    </div>
+                  `;
+                  const btn3 = document.getElementById("RemoteVerriegelung");
+                  if (btn3) {
+                    btn3.addEventListener("click", () => {
+                      this.RemoteLock(updated.rcuId);
+                    });
+                  }
+
+                  const btn2 = document.getElementById("StopRemoteMode");
+                  if (btn2) {
+                    btn2.addEventListener("click", () => {
+                      this.stopRemoteMode(updated.rcuId);
+                    });
+                  }
+                } else if (updated.status === "remote mode requested"){
+
+                  // Animation zuvor stoppen, falls aktiv
+                  this.cancelConnectingAnimation?.();
+                  this.cancelConnectingAnimation = null;
+
+                  btnContainer.innerHTML = `
+                    <div id="connecting-text"
+                         class="flex justify-left pt-14 px-4 text-orange-700 font-semibold text-lg rounded-lg">
+                      Verbindung zur Maschine wird aufgebaut<span id="dots"></span>
+                    </div>
+                  `;
+                  let dotCount = 0;
+                  const dotsEl = document.getElementById('dots')!;
+
+                  if (dotsEl) {
+                    const interval = setInterval(() => {
+                      dotCount = (dotCount + 1) % 4;
+                      dotsEl.textContent = ".".repeat(dotCount);
+                    }, 400);
+
+                    // Animation stoppen, wenn Status wechselt
+                    this.cancelConnectingAnimation = () => clearInterval(interval);
+                  }
+
                 } else {
+                  this.cancelConnectingAnimation?.();   // <--- HINZUFÜGEN
+                  this.cancelConnectingAnimation = null;
                   // Button entfernen
-                  btnContainer.innerHTML = "";
+                  btnContainer.innerHTML = `
+                    <div class="flex justify-center pt-14 px-4 text-gray-700 font-semibold text-lg rounded-lg">
+                    Fernsteuerung nicht verfügbar
+                    </div>
+
+                  `;
+
                 }
               }
             }
@@ -143,7 +283,8 @@ export class EinheitenMaschinenComponent implements OnInit {
         case 'idle': return 'text-green-600';
         case 'offline': return 'text-gray-600';
         case 'operational': return 'text-orange-700';
-        case 'remote mode': return 'text-[#800080]';
+        case 'remote - idle': return 'text-green-600';
+        case 'remote - operational': return 'text-orange-700';
         case 'remote mode requested': return 'text-[#CD853F]';
         default: return 'text-gray-500';
       }
@@ -159,11 +300,11 @@ export class EinheitenMaschinenComponent implements OnInit {
         title: r.name,
         html: `
           <div style="border-bottom: 1px solid #d1d5db; margin: 10px 0 20px 0;"></div>
-          <div style="height: 200px;" class="flex items-start gap-10 text-left w-full">
+          <div style="height: 200px;" class="flex items-start gap-1 text-left w-full">
 
             <!-- Image -->
             <div class="h-full flex items-center">
-              <img src="${img}" class="rounded-md h-32 px-2 min-w-[130px]" />
+              <img src="${img}" class="rounded-md h-32 px-2 min-w-[140px]" />
             </div>
 
             <!-- Information -->
@@ -188,17 +329,107 @@ export class EinheitenMaschinenComponent implements OnInit {
             </div>
 
           </div>
-          <div style="height: 100px;" class="flex items-center justify-center w-full">
+          <div style="height: 140px;" class="w-full">
 
             <div id="remote-btn-container">
               ${ (r.status == "inactive" || r.status == "idle") ? `
                   <button id="StartRemoteMode"
                     style="outline: none; box-shadow: none;"
-                    class="px-4 py-2 text-[#800080] font-semibold text-lg rounded-lg hover:text-[#4D2D61] transition">
-                    FERNSTEUERUNG STARTEN
+                    class="px-4 py-14 text-[#4D004D] font-semibold text-lg rounded-lg hover:text-[#330033] transition">
+                    <<< FERNSTEUERUNG STARTEN >>>
                   </button>
                 ` : ''
               }
+
+              ${ (r.status == "Remote - idle") ? `
+                  <!-- Hinweistext über Buttons -->
+                  <div class="text-left text-[#002B49] font-semibold text-xl mb-2 pt-2 px-10 w-full">
+                    Fernsteuerung ist aktiv
+
+                    <div style="border-bottom: 1px dotted #d1d5db; margin: 5px 0 22px 0; width: 100%; display: block;"></div>
+                  </div>
+
+                  <!-- Erste Zeile: Entriegeln / Verriegeln nebeneinander -->
+                  <div class="flex justify-center mb-3">
+
+                      <button id="RemoteEntriegelung"
+                        style="outline: none; box-shadow: none; position: relative;"
+                        class="px-4 group flex items-center justify-center gap-4 bg-[#E0E0E0]/10 w-42 h-12 rounded-lg text-[#228B22] text-lg transition hover:text-[#006400] hover:bg-[#F2F2F2]">
+
+                        <i class="fa-solid fa-lock-open text-3xl"></i>
+                        <span>Maschine entriegeln</span>
+
+                      </button>
+
+                  </div>
+
+                  <!-- Zweite Zeile: Button zentriert darunter -->
+                  <div class="flex justify-center mt-2">
+
+                      <button id="StopRemoteMode"
+                        style="outline: none; box-shadow: none;"
+                        class="px-4 py-2 text-[#4D004D] font-semibold text-lg rounded-lg hover:text-[#330033] transition">
+                        <<< FERNSTEUERUNG BEENDEN >>>
+                      </button>
+
+                  </div>
+
+                ` : ''
+              }
+
+              ${ (r.status == "Remote - operational") ? `
+                <!-- Hinweistext über Buttons -->
+                <div class="text-left text-[#002B49] font-semibold text-xl mb-2 pt-2 px-10 w-full">
+                  Fernsteuerung ist aktiv
+
+                  <div style="border-bottom: 1px dotted #d1d5db; margin: 5px 0 22px 0; width: 100%; display: block;"></div>
+                </div>
+
+                <!-- Erste Zeile: Entriegeln / Verriegeln nebeneinander -->
+                <div class="flex justify-center mb-3">
+
+                    <button id="RemoteVerriegelung"
+                      style="outline: none; box-shadow: none; position: relative;"
+                      class="px-4 group flex items-center justify-center gap-4 bg-[#E0E0E0]/10 w-42 h-12 rounded-lg text-red-800 text-lg transition hover:text-red-900 hover:bg-[#F2F2F2]">
+
+                      <i class="fa-solid fa-lock text-3xl"></i>
+                      <span>Maschine verriegeln</span>
+
+                    </button>
+
+                </div>
+
+                <!-- Zweite Zeile: Button zentriert darunter -->
+                <div class="flex justify-center mt-2">
+
+                    <button id="StopRemoteMode"
+                      style="outline: none; box-shadow: none;"
+                      class="px-4 py-2 text-[#4D004D] font-semibold text-lg rounded-lg hover:text-[#330033] transition">
+                      <<< FERNSTEUERUNG BEENDEN >>>
+                    </button>
+
+                </div>
+
+                ` : ''
+              }
+
+              ${ (r.status == "remote mode requested") ? `
+                <div class="flex justify-left pt-14 px-4 text-orange-900 font-semibold text-lg rounded-lg">
+                Verbindung zur Maschine wird aufgebaut .
+                </div>
+
+                ` : ''
+              }
+
+
+              ${ (!["inactive", "idle", "Remote - idle", "Remote - operational", "remote mode requested"].includes(r.status ?? "")) ? `
+                <div class="flex justify-center pt-14 px-4 text-gray-700 font-semibold text-lg rounded-lg">
+                Fernsteuerung nicht verfügbar
+                </div>
+
+                ` : ''
+              }
+
             </div>
 
           </div>
@@ -221,10 +452,31 @@ export class EinheitenMaschinenComponent implements OnInit {
 
         didRender: () => {
           const btn = document.getElementById("StartRemoteMode");
+          const btn1 = document.getElementById("RemoteEntriegelung");
+          const btn2 = document.getElementById("StopRemoteMode");
+          const btn3 = document.getElementById("RemoteVerriegelung");
 
           if (btn) {
             btn.addEventListener("click", () => {
               this.startRemoteMode(r.rcuId);  // <--- Deine Funktion aufrufen
+            });
+          }
+
+          if (btn1) {
+            btn1.addEventListener("click", () => {
+              this.RemoteUnlock(r.rcuId);  // <--- Deine Funktion aufrufen
+            });
+          }
+
+          if (btn2) {
+            btn2.addEventListener("click", () => {
+              this.stopRemoteMode(r.rcuId);  // <--- Deine Funktion aufrufen
+            });
+          }
+
+          if (btn3) {
+            btn3.addEventListener("click", () => {
+              this.RemoteLock(r.rcuId);  // <--- Deine Funktion aufrufen
             });
           }
         }
@@ -233,11 +485,193 @@ export class EinheitenMaschinenComponent implements OnInit {
 
     startRemoteMode(rcuId: string) {
       this.rcuService.startRemoteMode(rcuId).subscribe({
-          next: () => this.loadData(),
-          error: () => this.errorMsg = 'Fehler beim Remote Start.'
-        });
+        next: () => this.loadData(),
+        error: () => this.errorMsg = 'Fehler beim Remote Start.'
+      });
 
-      }
+    }
+
+    stopRemoteMode(rcuId: string) {
+      this.rcuService.stopRemoteMode(rcuId).subscribe({
+        next: (data: Remote) => {
+          this.loadData()
+        },
+        error: err => {
+          if (err.status === 504) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Fehler',
+              text: 'Die Maschine ist nicht erreichbar - Fernsteuerung wird verlassen',
+
+              showConfirmButton: true,
+              confirmButtonText: 'Ok',
+
+              showCancelButton: false,
+              buttonsStyling: false,
+
+              customClass: {
+                confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+              }
+            });
+          } else if (err.status === 0) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Verbindung fehlgeschlagen',
+              text: 'Der Server ist nicht erreichbar. Bitte überprüfen Sie die Verbindung.',
+
+              showConfirmButton: true,
+              confirmButtonText: 'Ok',
+
+              showCancelButton: false,
+              buttonsStyling: false,
+
+              customClass: {
+                confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+              }
+            });
+
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Fehler',
+              text: `Ein unerwarteter Fehler ist aufgetreten: ${err.status}`,
+
+              showConfirmButton: true,
+              confirmButtonText: 'Ok',
+
+              showCancelButton: false,
+              buttonsStyling: false,
+
+              customClass: {
+                confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+              }
+            });
+          }
+        }
+      });
+    }
+
+    RemoteUnlock(rcuId: string) {
+      this.rcuService.remoteUnlock(rcuId).subscribe({
+        next: (data: Remote) => {
+          this.loadData()
+        },
+        error: err => {
+          if (err.status === 504) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Fehler',
+              text: 'Die Maschine ist nicht erreichbar - Fernsteuerung wird verlassen',
+
+              showConfirmButton: true,
+              confirmButtonText: 'Ok',
+
+              showCancelButton: false,
+              buttonsStyling: false,
+
+              customClass: {
+                confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+              }
+            });
+          } else if (err.status === 0) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Verbindung fehlgeschlagen',
+              text: 'Der Server ist nicht erreichbar. Bitte überprüfen Sie die Verbindung.',
+
+              showConfirmButton: true,
+              confirmButtonText: 'Ok',
+
+              showCancelButton: false,
+              buttonsStyling: false,
+
+              customClass: {
+                confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+              }
+            });
+
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Fehler',
+              text: `Ein unerwarteter Fehler ist aufgetreten: ${err.status}`,
+
+              showConfirmButton: true,
+              confirmButtonText: 'Ok',
+
+              showCancelButton: false,
+              buttonsStyling: false,
+
+              customClass: {
+                confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+              }
+            });
+          }
+        }
+      });
+
+    }
+
+    RemoteLock(rcuId: string) {
+      this.rcuService.remoteLock(rcuId).subscribe({
+        next: (data: Remote) => {
+          this.loadData()
+        },
+        error: err => {
+          if (err.status === 504) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Fehler',
+              text: 'Die Maschine ist nicht erreichbar - Fernsteuerung wird verlassen',
+
+              showConfirmButton: true,
+              confirmButtonText: 'Ok',
+
+              showCancelButton: false,
+              buttonsStyling: false,
+
+              customClass: {
+                confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+              }
+            });
+          } else if (err.status === 0) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Verbindung fehlgeschlagen',
+              text: 'Der Server ist nicht erreichbar. Bitte überprüfen Sie die Verbindung.',
+
+              showConfirmButton: true,
+              confirmButtonText: 'Ok',
+
+              showCancelButton: false,
+              buttonsStyling: false,
+
+              customClass: {
+                confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+              }
+            });
+
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Fehler',
+              text: `Ein unerwarteter Fehler ist aufgetreten: ${err.status}`,
+
+              showConfirmButton: true,
+              confirmButtonText: 'Ok',
+
+              showCancelButton: false,
+              buttonsStyling: false,
+
+              customClass: {
+                confirmButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
+              }
+            });
+          }
+        }
+      });
+
+    }
 
 
 

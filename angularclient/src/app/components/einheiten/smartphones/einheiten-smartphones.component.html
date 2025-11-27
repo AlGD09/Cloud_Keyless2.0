@@ -76,7 +76,7 @@
 
         <!-- Löschen-Button unten -->
         <button
-          (click)="deleteSmartphone(s.id!)"
+          (click)="deleteSmartphone(s.id!); $event.stopPropagation()"
           class="mt-auto text-red-700 hover:text-red-700 transition"
           title="Löschen"
         >
