@@ -210,7 +210,16 @@ public class RCUController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/schedule/{rcuId}")
+    public ResponseEntity<List<Programmed>> getScheduledRcu(@PathVariable String rcuId) {
+        List<Programmed> programmed = rcuService.getScheduledForRcu(rcuId);
+
+        if (programmed.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
 
 
+        return ResponseEntity.ok(programmed);
+    }
 
 }

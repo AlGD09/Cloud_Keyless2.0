@@ -20,6 +20,8 @@ export class EinheitenMaschinenComponent implements OnInit {
    // RCUs
     rcus: Rcu[] = [];
 
+    schedules: { rcuId: string; unlockTime: string; lockTime: string }[] = [];
+
     // Status
     loading = false;
     errorMsg = '';
@@ -32,6 +34,8 @@ export class EinheitenMaschinenComponent implements OnInit {
     // – NICHT mehr den gesamten loadData()-Aufruf.
     private autoRefreshPaused = false;
 
+
+
     private setRemoteSubMode(mode: 'manual' | 'schedule' | 'none') {
       this.remoteSubMode = mode;
       // Nur noch: Popup-Updates pausieren, wenn 'schedule'
@@ -40,6 +44,20 @@ export class EinheitenMaschinenComponent implements OnInit {
 
     private resumeAutoRefresh() {
       this.autoRefreshPaused = false;
+    }
+
+    private formatDateTime(value: string | null): string {
+      if (!value || value === "-") return "-";
+
+      const d = new Date(value);
+      if (isNaN(d.getTime())) return value;
+
+      const pad = (n: number) => n.toString().padStart(2, "0");
+
+      const date = `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+      const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+      return `${time} · ${date}`;
     }
 
     constructor(
@@ -70,6 +88,10 @@ export class EinheitenMaschinenComponent implements OnInit {
       this.rcuService.getAllRcus().subscribe({
         next: (data: Rcu[]) => {
           this.rcus = data;
+          this.schedules = [];
+
+
+
           this.loading = false;
 
           // --- LIVE UPDATE IM SWEETALERT POPUP ---
@@ -82,6 +104,77 @@ export class EinheitenMaschinenComponent implements OnInit {
             const updated = data.find(x => x.id === rcuId);
 
             if (updated) {
+              const infoContainer = document.getElementById("schedule-info-container");
+
+              if (updated.status === "Remote - idle" || updated.status === "Remote - operational") {
+                this.rcuService.getScheduledRcu(updated.rcuId).subscribe({
+                    next: (programms: Programmed[]) => {
+
+                      let setUnlock = "";
+                      let setLock = "";
+
+                      if (!programms || programms.length === 0) {
+                        this.schedules = this.schedules.filter(x => x.rcuId !== updated.rcuId);
+                        this.schedules.push({
+                          rcuId: updated.rcuId || "-",
+                          unlockTime: "-",
+                          lockTime: "-"
+                        });
+                        setUnlock = "-";
+                        setLock = "-";
+
+                      } else {
+                        //ggf. später mehrere Programms pro RCU erlauben
+                        const last = programms[0];  // erstes Element nehmen
+                        this.schedules = this.schedules.filter(x => x.rcuId !== updated.rcuId);
+                        this.schedules.push({
+                          rcuId: updated.rcuId || "-",
+                          unlockTime: last.unlockTime || "-",
+                          lockTime: last.lockTime || "-"
+                        });
+                        setUnlock = last.unlockTime || "-";
+                        setLock = last.lockTime || "-";
+                      }
+                      if (infoContainer) {
+                        if (setUnlock === "-" && setLock === "-") {
+                          infoContainer.innerHTML = `
+                          `;
+                        } else {
+                          infoContainer.innerHTML = `
+
+                            <div class="mt-8 border-l-4 border-blue-600 rounded text-[15px] text-gray-700">
+                              <div class="text-left text-[#002B49] font-semibold text-lg pl-4 pt-3 mb-2 w-full">
+                                Geplante Befehle
+                              </div>
+                              <p class="pl-5 mb-2 text-left">
+                                <span class="text-base text-[#002B49] text-left font-medium hover:text-[#002B49] transition">
+                                  Entriegelungszeitpunkt:
+                                </span>
+                                <span class="text-gray-900 font-light px-3"> ${this.formatDateTime(setUnlock)} </span>
+                              </p>
+                              <p class="pl-5 pb-4 text-left">
+                                <span class="text-base text-[#002B49] text-left font-medium hover:text-[#002B49] transition">
+                                  Verriegelungszeitpunkt:
+                                </span>
+                                <span class="text-gray-900 font-light px-3"> ${this.formatDateTime(setLock)} </span>
+                              </p>
+                            </div>
+                          `;
+                        }
+                      }
+
+                    },
+                    error: () => {
+                      this.schedules.push({
+                        rcuId: updated.rcuId || '-',
+                        unlockTime: '-',
+                        lockTime: '-'
+                      });
+
+                    }
+
+                })
+              }
 
               // STATUS aktualisieren
               statusEl.innerText = (updated.status + "").toUpperCase();
@@ -91,9 +184,14 @@ export class EinheitenMaschinenComponent implements OnInit {
               // BUTTON aktualisieren
               const btnContainer = document.getElementById("remote-btn-container");
 
-              if (btnContainer && !this.autoRefreshPaused) {
+
+              if (btnContainer && !this.autoRefreshPaused) { // Ggf. nur Button Bereich nicht aktualisieren
 
                 if (updated.status === "idle") {
+
+                  if (infoContainer) {
+                    infoContainer.innerHTML = ``;
+                  }
 
                   // Button rendern
                   btnContainer.innerHTML = `
@@ -578,6 +676,10 @@ export class EinheitenMaschinenComponent implements OnInit {
                 } else {
                   this.cancelConnectingAnimation?.();   // <--- HINZUFÜGEN
                   this.cancelConnectingAnimation = null;
+
+                  if (infoContainer) {
+                    infoContainer.innerHTML = ``;
+                  }
                   // Button entfernen
                   btnContainer.innerHTML = `
                     <div class="flex justify-center pt-14 px-4 text-gray-700 font-semibold text-lg rounded-lg">
@@ -657,6 +759,9 @@ export class EinheitenMaschinenComponent implements OnInit {
       const h = machine.height;
       const color = this.getStatusColor(r.status);
       const mode = this.remoteSubMode;
+      const s = this.schedules.find(x => x.rcuId === r.rcuId);
+      const setUnlock = s?.unlockTime ?? "-";
+      const setLock = s?.lockTime ?? "-";
       const unlockVal = '';
       const lockVal   = '';
 
@@ -693,7 +798,7 @@ export class EinheitenMaschinenComponent implements OnInit {
             </div>
 
           </div>
-          <div style="height: 140px;" class="w-full">
+          <div class="w-full">
 
             <div id="remote-btn-container">
               ${ (r.status == "inactive" || r.status == "idle") ? `
@@ -973,6 +1078,34 @@ export class EinheitenMaschinenComponent implements OnInit {
 
           </div>
 
+          <div class="w-full px-10">
+
+            <div id="schedule-info-container">
+                ${ (setUnlock != "-" && setLock != "-" && (r.status == "Remote - operational" || r.status == "Remote - idle")) ? `
+                  <div class="mt-8 border-l-4 border-blue-600 rounded text-[15px] text-gray-700">
+                    <div class="text-left text-[#002B49] font-semibold text-lg pl-4 pt-3 mb-2 w-full">
+                      Geplante Befehle
+                    </div>
+                    <p class="pl-5 mb-2 text-left">
+                      <span class="text-base text-[#002B49] text-left font-medium hover:text-[#002B49] transition">
+                        Entriegelungszeitpunkt:
+                      </span>
+                      <span class="text-gray-900 font-light px-3"> ${this.formatDateTime(setUnlock)} </span>
+                    </p>
+                    <p class="pl-5 pb-4 text-left">
+                      <span class="text-base text-[#002B49] text-left font-medium hover:text-[#002B49] transition">
+                        Verriegelungszeitpunkt:
+                      </span>
+                      <span class="text-gray-900 font-light px-3"> ${this.formatDateTime(setLock)} </span>
+                    </p>
+                  </div>
+                  ` : ''
+                }
+
+            </div>
+
+          </div>
+
         `,
         showConfirmButton: false,
         showCancelButton: true,
@@ -984,7 +1117,7 @@ export class EinheitenMaschinenComponent implements OnInit {
         customClass: {
           popup: 'rounded-2xl',
           container: '',
-          htmlContainer: 'p-10',
+          htmlContainer: 'p-10 inner-scroll',
           title: 'pt-14',
           cancelButton: 'text-[#002B49] font-semibold px-4 py-2 rounded-lg hover:text-blue-800 transition'
         },
@@ -996,6 +1129,14 @@ export class EinheitenMaschinenComponent implements OnInit {
 
 
         didRender: () => {
+
+          const inner = document.querySelector('.inner-scroll') as HTMLElement;
+          if (inner) {
+            inner.style.maxHeight = "70vh";     // Höhe begrenzen
+            inner.style.overflowY = "auto";     // Scroll NUR innen
+            inner.style.paddingRight = "12px";  // verhindert scrollbar über Rundung
+          }
+
           const btn = document.getElementById("StartRemoteMode");
           const btn1 = document.getElementById("RemoteEntriegelung");
           const btn2 = document.getElementById("StopRemoteMode");

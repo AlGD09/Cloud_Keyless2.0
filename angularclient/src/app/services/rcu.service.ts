@@ -87,8 +87,12 @@ scheduleRemote(programmed: Programmed): Observable<Programmed> {
   return this.http.post<Programmed>(`${this.baseUrl}/remote/schedule`, programmed);
 }
 
-deleteScheduleRemote(rcuId: String) {
+deleteScheduleRemote(rcuId: string) {
   return this.http.delete(`${this.baseUrl}/delete/schedule/${rcuId}`);
+}
+
+getScheduledRcu(rcuId: string): Observable<Programmed[]> {
+  return this.http.get<Programmed[]>(`${this.baseUrl}/schedule/${rcuId}`);
 }
 
   }

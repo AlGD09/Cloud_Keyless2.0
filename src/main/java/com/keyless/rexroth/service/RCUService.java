@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Scheduled;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -536,6 +538,20 @@ public class RCUService {
         if (!programmed.isEmpty()) {
             programmedRepository.deleteAllByRcuId(rcuId);
         }
+    }
+
+    public List<Programmed> getScheduledForRcu(String rcuId) {
+        RCU rcu = rcuRepository.findByRcuId(rcuId);
+        if (rcu == null) {
+            return Collections.emptyList(); // besser als null zurückgeben
+        }
+
+        List<Programmed> programmed = programmedRepository.findAllByRcuId(rcuId);
+        if (programmed.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return programmed;
     }
 
 
