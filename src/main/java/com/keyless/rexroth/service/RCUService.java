@@ -93,9 +93,19 @@ public class RCUService {
             RCU rcu = rcuRepository.findById(id).orElse(null);
             if (rcu != null) {
                 lastStatusPoll.remove(rcu.getRcuId());
+                if (rcu.getStatus().equals("Remote - idle") || rcu.getStatus().equals("Remote - operational")) {
+                    sendRemoteExitEvent(rcu.getRcuId());
+                    addNewEvent(rcu.getRcuId(), "Remote Control", "1", "Fernsteuerung deaktiviert");
+                } else if (rcu.getStatus().equals("operational")) {
+                    sendLockEvent(rcu.getRcuId());
+                    addNewEvent(rcu.getRcuId(), "Remote Control", "1", "Remote Verriegelt");
+                }
+                rcuRepository.deleteById(id);
             }
-            rcuRepository.deleteById(id);
+
+
         }
+
     }
 
     public List<Event> getAllEvents() { return eventRepository.findAll(); }
@@ -109,6 +119,10 @@ public class RCUService {
     public void addNewEvent(String rcuId, String deviceName, String deviceId, String result) {
         RCU rcu = rcuRepository.findByRcuId(rcuId);
         Event lastEvent = eventRepository.findTop1ByRcuIdOrderByEventTimeDesc(rcuId);
+
+        if (rcu == null) {
+            return;
+        }
 
         // Ungwöhnliche Verriegelung bei App lost Cloud Verbindung + neue Maschine Session danach erkennen
         if (lastEvent != null

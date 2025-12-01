@@ -42,6 +42,11 @@ export class EinheitenMaschinenComponent implements OnInit {
       // this.autoRefreshPaused = mode === 'schedule';
     }
 
+    private getRemoteSubMode() {
+      return this.remoteSubMode;
+
+    }
+
     private resumeAutoRefresh() {
       this.autoRefreshPaused = false;
     }
@@ -138,6 +143,7 @@ export class EinheitenMaschinenComponent implements OnInit {
                       if (infoContainer) {
                         if (setUnlock === "-" && setLock === "-") {
                           infoContainer.innerHTML = `
+
                           `;
                         } else {
                           const unlockText = this.formatDateTime(setUnlock);
@@ -222,8 +228,19 @@ export class EinheitenMaschinenComponent implements OnInit {
               // BUTTON aktualisieren
               const btnContainer = document.getElementById("remote-btn-container");
 
+              // Back Up Aktualisierungen, wenn autoRefreshPaused set ist
+              if (updated.status === "Remote - operational" && this.autoRefreshPaused && this.getRemoteSubMode() === "manual") {
+                this.handleClick(updated);
+                this.autoRefreshPaused = false;
+              }
 
-              if (btnContainer && !this.autoRefreshPaused) { // Ggf. nur Button Bereich nicht aktualisieren
+              if (updated.status === "offline" && this.autoRefreshPaused) {
+                this.handleClick(updated);
+                this.autoRefreshPaused = false;
+              }
+
+              // Button Bereich bei bestimmten Fällen nicht aktualisieren (Date set + erstes manual - wegen unbekannter Glitch)
+              if (btnContainer && !this.autoRefreshPaused) {
 
                 if (updated.status === "idle") {
 
@@ -403,7 +420,9 @@ export class EinheitenMaschinenComponent implements OnInit {
                   const btn1 = document.getElementById("RemoteEntriegelung");
                   if (btn1) {
                     btn1.addEventListener("click", () => {
+                      this.autoRefreshPaused = false;
                       this.RemoteUnlock(updated.rcuId);
+
                     });
                   }
 
@@ -418,10 +437,19 @@ export class EinheitenMaschinenComponent implements OnInit {
 
                   const btn5 = document.getElementById("RemoteManualMode");
                   if (btn5) {
-                    btn5.addEventListener("click", () => {
+                    btn5.addEventListener("click", async () => {
+
+
                       this.setRemoteSubMode('manual');
-                      // this.handleClick(updated); // Unbekannter Glitch lösen?
-                      // this.autoRefreshPaused = true;
+                      this.handleClick(updated);
+                      this.autoRefreshPaused = true;
+                      //this.handleClick(updated);
+                      //this.autoRefreshPaused = true;
+                      // await new Promise(resolve => setTimeout(resolve, 10000));
+                      //this.autoRefreshPaused = false;
+                      //this.setRemoteSubMode('manual');
+                      /*this.handleClick(updated);
+                      this.autoRefreshPaused = false;*/
 
                     });
                   }
@@ -794,11 +822,15 @@ export class EinheitenMaschinenComponent implements OnInit {
     }
 
     handleClick(r: Rcu) {
+
+
+      // Swal.close();
+      // await new Promise(res => setTimeout(res, 10));
+
       const machine = this.getMachineImage(r.name);
       const img = machine.src;
       const h = machine.height;
       const color = this.getStatusColor(r.status);
-      const mode = this.remoteSubMode;
       const s = this.schedules.find(x => x.rcuId === r.rcuId);
       const setUnlock = s?.unlockTime ?? "-";
       const setLock = s?.lockTime ?? "-";
@@ -860,7 +892,7 @@ export class EinheitenMaschinenComponent implements OnInit {
                     <div style="border-bottom: 1px dotted #d1d5db; margin: 5px 0 22px 0; width: 100%; display: block;"></div>
                   </div>
 
-                  ${ (mode == 'none') ? `
+                  ${ (this.getRemoteSubMode() == 'none') ? `
                     <div class="flex justify-center gap-4 mb-4">
                       <button id="RemoteManualMode" class="px-4 py-2 rounded-lg text-[#002B49] font-semibold hover:text-blue-800">
                         Manuelle Steuerung
@@ -873,7 +905,7 @@ export class EinheitenMaschinenComponent implements OnInit {
                     ` : ''
                   }
 
-                  ${ (mode == 'manual') ? `
+                  ${ (this.getRemoteSubMode() == 'manual') ? `
                       <!-- Erste Zeile: Entriegeln / Verriegeln nebeneinander -->
                       <div class="flex justify-center mb-3">
 
@@ -902,7 +934,7 @@ export class EinheitenMaschinenComponent implements OnInit {
                     ` : ''
                   }
 
-                  ${ (mode == 'schedule') ? `
+                  ${ (this.getRemoteSubMode() == 'schedule') ? `
 
 
                       <div class="px-10 pt-2 space-y-3 text-left w-full">
@@ -973,7 +1005,7 @@ export class EinheitenMaschinenComponent implements OnInit {
                   <div style="border-bottom: 1px dotted #d1d5db; margin: 5px 0 22px 0; width: 100%; display: block;"></div>
                 </div>
 
-                ${ (mode == 'none') ? `
+                ${ (this.getRemoteSubMode() == 'none') ? `
                   <div class="flex justify-center gap-4 mb-4">
                     <button id="RemoteManualMode" class="px-4 py-2 rounded-lg text-[#002B49] font-semibold hover:text-blue-800">
                       Manuelle Steuerung
@@ -986,7 +1018,7 @@ export class EinheitenMaschinenComponent implements OnInit {
                   ` : ''
                 }
 
-                ${ (mode == 'manual') ? `
+                ${ (this.getRemoteSubMode() == 'manual') ? `
                     <!-- Erste Zeile: Entriegeln / Verriegeln nebeneinander -->
                     <div class="flex justify-center mb-3">
 
@@ -1016,7 +1048,7 @@ export class EinheitenMaschinenComponent implements OnInit {
                   ` : ''
                 }
 
-                ${ (mode == 'schedule') ? `
+                ${ (this.getRemoteSubMode() == 'schedule') ? `
                     <div class="px-10 pt-2 space-y-3 text-left w-full">
                       <label class="block text-base font-semibold text-[#002B49]">
                         Entriegelungszeitpunkt:
@@ -1217,6 +1249,7 @@ export class EinheitenMaschinenComponent implements OnInit {
 
           if (btn1) {
             btn1.addEventListener("click", () => {
+              this.autoRefreshPaused = false;
               this.RemoteUnlock(r.rcuId);
             });
           }
@@ -1242,7 +1275,7 @@ export class EinheitenMaschinenComponent implements OnInit {
           if (btn5) {
             btn5.addEventListener("click", () => {
               this.setRemoteSubMode('manual');
-              this.handleClick(r);
+              // this.handleClick(r);
             });
           }
 
