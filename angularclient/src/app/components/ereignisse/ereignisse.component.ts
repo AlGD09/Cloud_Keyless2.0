@@ -325,6 +325,8 @@ export class EventComponent implements OnInit {
       case 'Remote Entriegelt': return '#4C7F4C';
       case 'Remote Verriegelt': return '#A60026';
       case 'Notfallverriegelung': return 'orange';
+      case 'Programmierte Entr.': return '#57EC73';
+      case 'Programmierte Verr.': return '#D66C73';
       default: return 'gray';
     }
   }
@@ -341,6 +343,8 @@ export class EventComponent implements OnInit {
       case 'Remote Entriegelt': return 550;
       case 'Remote Verriegelt': return 550;
       case 'Notfallverriegelung': return 150;
+      case 'Programmierte Entr.': return 550;
+      case 'Programmierte Verr.': return 550;
       default: return 400;
     }
   }

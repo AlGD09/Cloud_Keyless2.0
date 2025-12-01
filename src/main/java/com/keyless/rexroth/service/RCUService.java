@@ -185,8 +185,12 @@ public class RCUService {
         }
 
         if (lastEvent != null) {
-            if (result.equals("Verriegelt") && lastEvent.getResult().equals("Notfallverriegelung")){
-                // Do nothing
+            if (result.equals("Verriegelt") && lastEvent.getResult().equals("Notfallverriegelung")) {
+                // Doppelte Verriegelung im Event-Übersicht verhindern
+            } else if (result.equals("Remote Verriegelt") && lastEvent.getResult().equals("Programmierte Verr.")) {
+                // Doppelte Verriegelung im Event-Übersicht verhindern
+            } else if (result.equals("Remote Entriegelt") && lastEvent.getResult().equals("Programmierte Entr.")) {
+                // Doppelte Entriegelung im Event-Übersicht verhindern
             } else {
                 eventRepository.save(event);
             }
@@ -551,6 +555,7 @@ public class RCUService {
                 sendRemoteUnlockEvent(rcuId);
                 programmed.setUnlockTime(null);
                 programmedRepository.save(programmed);
+                addNewEvent(rcuId, "Remote Control", "1", "Programmierte Entr.");
             }
 
             // LOCK
@@ -558,6 +563,7 @@ public class RCUService {
                 sendRemoteLockEvent(rcuId);
                 programmed.setLockTime(null);
                 programmedRepository.save(programmed);
+                addNewEvent(rcuId, "Remote Control", "1", "Programmierte Verr.");
             }
 
             // Löschen, wenn beide ausgeführt wurden
